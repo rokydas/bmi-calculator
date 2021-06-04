@@ -19,7 +19,7 @@ class CardColumn extends StatelessWidget {
         SizedBox(height: 5,),
         Text(
           text,
-          style: labelStyle
+          style: kLabelStyle
         ),
       ],
     );

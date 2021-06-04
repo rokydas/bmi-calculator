@@ -1,12 +1,19 @@
-import 'package:bmi_calculator/icon_column.dart';
+import 'package:bmi_calculator/gender_column.dart';
 import 'package:bmi_calculator/reusable_card.dart';
+import 'package:bmi_calculator/round_icon_button.dart';
+import 'package:bmi_calculator/weight_age_column.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
 
-const double bottomButtonHeight = 70.0;
-Color inActiveColor = HexColor('FF323244');
-Color activeColor = HexColor('#e83d66');
+import 'common_styles.dart';
+
+enum Gender {
+    male,
+    female,
+}
+
+Gender selectedGender;
 
 class InputPage extends StatefulWidget {
   @override
@@ -15,19 +22,22 @@ class InputPage extends StatefulWidget {
 
 class _InputPageState extends State<InputPage> {
 
-  Color maleColor = inActiveColor;
-  Color femaleColor = inActiveColor;
+  double currentValue = 150;
+  int weight = 63;
+  int age = 22;
 
-  void updateGenderColor({bool isMale}) {
-      if(isMale) {
-        maleColor = activeColor;
-        femaleColor = inActiveColor;
-      }
-      else {
-        maleColor = inActiveColor;
-        femaleColor = activeColor;
-      }
-   }
+  Function updateWeightAge({String type, bool operation}) {
+    if(operation && type == "weight") weight++;
+    else if(operation && type == "age") age++;
+    else if(!operation && type == "weight") weight--;
+    else if(!operation && type == "age") age--;
+  }
+
+  Function updateGenderActivity(gender) {
+      setState(() {
+        gender == 'male' ? selectedGender = Gender.male : selectedGender = Gender.female;
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,29 +57,19 @@ class _InputPageState extends State<InputPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          updateGenderColor(isMale: true);
-                        });
-                      },
-                      child: ReusableCard(
-                          colour: maleColor,
-                          cardChild: CardColumn(text: 'MALE')
-                      ),
+                    child: ReusableCard(
+                        colour: selectedGender == Gender.male ? kActiveColor : kInActiveColor,
+                        cardChild: CardColumn(text: 'MALE'),
+                        updateGenderActivity: updateGenderActivity,
+                        isMale: true,
                     ),
                   ),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          updateGenderColor(isMale: false);
-                        });
-                      },
-                      child: ReusableCard(
-                          colour: femaleColor,
-                          cardChild: CardColumn(text: 'FEMALE')
-                      ),
+                    child: ReusableCard(
+                        colour: selectedGender == Gender.female ? kActiveColor : kInActiveColor,
+                        cardChild: CardColumn(text: 'FEMALE'),
+                        updateGenderActivity: updateGenderActivity,
+                        isMale: false,
                     ),
                   ),
                 ],
@@ -83,46 +83,35 @@ class _InputPageState extends State<InputPage> {
                   children: [
                     Text(
                       'HEIGHT',
-                      style: TextStyle(
-                          fontSize: 15
-                      ),
+                      style: kLabelStyle,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(
-                          '181',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 50,
-                              fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 18),
-                          child: Text(
-                            'cm',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15
-                            ),
-                          ),
-                        )
+                        Text(currentValue.round().toString(), style: kNumberStyle),
+                        Text('cm', style: kLabelStyle)
                       ],
                     ),
-                    Slider(
-                      activeColor: HexColor('#e83d66'),
-                      inactiveColor: Colors.grey,
-                      value: 280,
-                      min: 100,
-                      max: 400,
-                      divisions: 300,
-                      label: "10",
-                      onChanged: (double value) {
-                        setState(() {
-                          print(value);
-                        });
-                      },
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: HexColor('#e83d66'),
+                        inactiveTrackColor: Colors.grey,
+                        thumbColor: HexColor('#e83d66'),
+                        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 15),
+                        overlayShape: RoundSliderOverlayShape(overlayRadius: 30),
+                      ),
+                      child: Slider(
+                        value: currentValue,
+                        min: 120,
+                        max: 220,
+                        onChanged: (double value) {
+                          setState(() {
+                            currentValue = value;
+                          });
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -134,78 +123,36 @@ class _InputPageState extends State<InputPage> {
                   Expanded(
                       child: ReusableCard(
                         colour: HexColor('FF323244'),
-                        cardChild: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'WEIGHT',
-                              style: TextStyle(
-                                  fontSize: 15
-                              ),
-                            ),
-                            SizedBox(height: 5,),
-                            Text(
-                              '63',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 35
-                              ),
-                            ),
-                            SizedBox(height: 5,),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FaIcon(
-                                  FontAwesomeIcons.plusCircle,
-                                  size: 30,
-                                ),
-                                SizedBox(width: 10,),
-                                FaIcon(
-                                  FontAwesomeIcons.minusCircle,
-                                  size: 30,
-                                ),
-                              ],
-                            )
-                          ],
+                        cardChild: WeightAgeColumn(
+                          type: 'WEIGHT', number: weight,
+                          onPlusPressed: () {
+                            setState(() {
+                              updateWeightAge(type: 'weight', operation: true);
+                            });
+                          },
+                          onMinusPressed: () {
+                            setState(() {
+                              updateWeightAge(type: 'weight', operation: false);
+                            });
+                          },
                         ),
                       ),
                   ),
                   Expanded(
                     child: ReusableCard(
                       colour: HexColor('FF323244'),
-                      cardChild: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'AGE',
-                            style: TextStyle(
-                                fontSize: 15
-                            ),
-                          ),
-                          SizedBox(height: 5,),
-                          Text(
-                            '30',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 35
-                            ),
-                          ),
-                          SizedBox(height: 5,),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              FaIcon(
-                                FontAwesomeIcons.plusCircle,
-                                size: 30,
-                              ),
-                              SizedBox(width: 10,),
-                              FaIcon(
-                                FontAwesomeIcons.minusCircle,
-                                size: 30,
-                              ),
-                            ],
-                          )
-                        ],
+                       cardChild: WeightAgeColumn(
+                        type: 'AGE', number: age,
+                        onPlusPressed: () {
+                          setState(() {
+                            updateWeightAge(type: 'age', operation: true);
+                          });
+                        },
+                        onMinusPressed: () {
+                          setState(() {
+                            updateWeightAge(type: 'age', operation: false);
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -216,7 +163,7 @@ class _InputPageState extends State<InputPage> {
               color: HexColor('#e83d66'),
               margin: EdgeInsets.only(top: 10),
               width: double.infinity,
-              height: bottomButtonHeight,
+              height: kBottomButtonHeight,
               child: Center(
                 child: Text(
                     'CALCULATE BMI',
