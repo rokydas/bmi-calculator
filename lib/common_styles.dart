@@ -15,3 +15,19 @@ const kNumberStyle = TextStyle(
     fontSize: 50,
     fontWeight: FontWeight.bold
 );
+
+const kHeadingStyle = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold
+);
+
+const kLargeHeadingStyle = TextStyle(
+    fontSize: 40,
+    fontWeight: FontWeight.bold,
+);
+
+const kBmiResultStyle = TextStyle(
+    fontSize: 25,
+    fontWeight: FontWeight.bold,
+    color: Colors.green,
+);
